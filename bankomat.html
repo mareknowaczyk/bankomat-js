@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Bankomat</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+        <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+    </head>
+    <body>
+       <div ng-app="myApp" ng-controller="bankomatCtrl" class=container>
+            <div class="row">
+                <div class="page-header">  
+                    <h1>
+                        <span class="glyphicon glyphicon-eur"></span> 
+                        Bankomat <small><ul>
+                                <li>prezentacja chain of responsibility principle, oraz
+                                <li>angular.js w akcji
+                            </ul>
+                        </small>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="col-xs-12">            
+                <label for="Kwota">Żądana kwota</label> <input ng-model="Kwota" ng-change="wyplata()">            
+            </div>
+            <div class="col-xs-12">
+                <small>Kwota do wypłaty</small> <b>{{ kwotaDoWyplaty | currency: "PLN ": 0}}</b>
+            </div>
+            <hr>
+            <div class="col-xs-12 well">
+                <h3>Wypłacone banknoty</h3>
+                <div class="row">
+                    <div class="col-xs-4">Nominał</div>
+                    <div class="col-xs-4">Liczba</div>
+                    <div class="col-xs-4">Suma</div>
+                </div>
+                <div class="row" ng-repeat="banknot in banknoty">
+                    <div class="col-xs-4">
+                        <span class="label label-success class="label label-success" nccess">
+                            {{ banknot.nominal}} {{ n }}
+                        </span>
+                    </div>
+                    <div class="col-xs-4">{{ banknot.count }}</div>
+                    <div class="col-xs-4">{{ banknot.sum | currency:"PLN ":0 }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        Wypłacone banknoty: <br> 
+                        <dummy ng-repeat="b in banknoty">
+                            <dummy ng-repeat="n in getNumber( b.count  )">
+                                <span class="label label-success"> {{ b.nominal }}</span>&nbsp;
+                            </dummy>
+                        </dummy>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript" charset="utf-8">
+            var BanknotRes = function( nominal, count ){
+                return {
+                    'nominal' : nominal,
+                    'count' : count,
+                    'sum' : nominal * count,
+                }
+            }
+            var Banknot = function( nominal, nextBanknot ){
+                var b = {
+                    'nominal' : nominal,
+                    'next' : nextBanknot,
+                    'process' : function( value, onBanknot ){
+                        var count = 0;
+                        var prevvalue = -1;
+                        while (( b.nominal <= value ) && (prevvalue != value)) {
+                            count += 1;
+                            prevvalue = value;
+                            value -= b.nominal;                            
+                        }
+                        if (count > 0)
+                            onBanknot( BanknotRes( b.nominal, count ) );
+                        if ( b.next ){
+                            b.next.process( value, onBanknot )
+                        }
+                    }
+                }
+                return b;
+            }            
+            var b10 = Banknot( 10, null );
+            var b20 = Banknot( 20, b10 );            
+            var b50 = Banknot( 50, b20 );            
+            var b100 = Banknot( 100, b50 );            
+            var b200 = Banknot( 200, b100 );          
+            var b500 = Banknot( 500, b200 )
+            var aBanknoty = [
+                b500, b200, b100, b50, b20, b10                
+            ]
+
+            var Banknoty = function( banknoty_array ){
+                var bs = {
+                    'banknoty' : banknoty_array,
+                    'sum' : function( banknoty_res ){
+                        var res = 0;
+                        angular.forEach( banknoty_res, function( bres, key) {
+                            res += bres.sum;
+                        });
+                        return res;hero-unit
+                    },
+                    'wyplac' : function( kwota ){
+                        if ( bs.banknoty.length <= 0 )
+                            return [];
+                        kwota = parseInt( kwota );
+                        var res = [];
+                        bs.banknoty[0].process( kwota, function( banknot_res ){
+                            res.push( banknot_res);
+                        } );
+                        return res;
+                    }
+                }
+                return bs;
+            }           
+
+
+            var app = angular.module('myApp', []);
+            app.controller('bankomatCtrl', function($scope) {
+                $scope.kwotaMax = 1000000;
+                $scope.Kwota = 12345;
+                $scope.kwotaDoWyplaty = 0;
+                $scope.banknoty = [];
+                $scope.banknotyObject = Banknoty( aBanknoty );
+                $scope.wyplata = function(){
+                    var kw = parseInt( $scope.Kwota);
+                    kw = kw > $scope.kwotaMax ? $scope.kwotaMax : kw;
+                    $scope.banknoty = $scope.banknotyObject.wyplac( kw );
+                    $scope.kwotaDoWyplaty = $scope.banknotyObject.sum( $scope.banknoty );
+                }
+                $scope.wyplata();
+                $scope.getNumber = function(num) {
+                    num = parseInt( num );
+                    var res = [];
+                    for ( var i = 0; i< num; i++) { res.push( i )};
+                    return res;
+                }
+            });            
+        </script>
+
+        <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    </body>
+</html>
