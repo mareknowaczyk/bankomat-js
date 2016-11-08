@@ -10,3 +10,9 @@ właściwie lepiej byłoby go nazwać rozmieniaczem ;).
 
 * prezentuje działanie chain of responsibility pattern, oraz
 * angular.js
+
+## Instalacja ##
+
+```
+bower install
+```
