@@ -6,86 +6,149 @@
         <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
         <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
         <script type="text/javascript" src="/bower_components/angular/angular.min.js"></script>
+        <script type="text/javascript" src="/bower_components/ngstorage/ngStorage.min.js"></script>
+        <style type="text/css" media="screen">
+            .glyphicon-leaf {
+                color: #282;
+            }
+        </style>
     </head>
     <body>
        <div ng-app="myApp" ng-controller="bankomatCtrl" class=container>
             <div class="row">
-                <div class="page-header">  
-                    <h1>
-                        <span class="glyphicon glyphicon-eur"></span> 
-                        Bankomat <small><ul>
-                                <li>prezentacja chain of responsibility pattern, oraz
-                                <li>angular.js w akcji
-                            </ul>
-                        </small>
-                    </h1>
+                <div class="page-header row">  
+                    <div class="col-md-4">
+                        <h1><span class="glyphicon glyphicon-leaf"></span> 
+                        Bankomat</h1>
+                    </div>
+                    <div class="col-md-8">
+                        <h1><small>
+                        <ul>
+                            <li>prezentacja chain of responsibility pattern, oraz
+                            <li>angular.js w akcji
+                            <li>ngStorage (transakcje są zapamiętywane w localStorage)
+                        </ul>
+                            </small></h1>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-xs-12">            
-                <label for="Kwota">Żądana kwota</label> <input ng-model="Kwota" ng-change="wyplata()">            
-            </div>
-            <div class="col-xs-12">
-                <small>Kwota do wypłaty</small> <b ng-bind="kwotaDoWyplaty | currency: 'PLN ': 0"></b>
-            </div>
-            <hr>
-            <div class="col-xs-12 well">
-                <h3>Wypłacone banknoty</h3>
-                <div class="row">
-                    <div class="col-xs-4">Nominał</div>
-                    <div class="col-xs-4">Liczba</div>
-                    <div class="col-xs-4">Suma</div>
+            <div class="row">                 
+                <div class="col-md-4 well">
+                    <h2>Banknoty w bankomacie</h2>
+                    <button type="submit" ng-click="doladujBankomat()">Doładuj bankomat</button>
+                    <br>
+                    <dummmy ng-repeat="b in banknotySet">
+                        <span class="label label-success" ng-bind="b.nominal"></span> x 
+                        <span ng-bind="b.amount"></span>
+                        <br>
+                    </dummy>
+                </div>                 
+                <div class="col-md-8">            
+                    <label for="Kwota">Wypłać kwotę</label> <input ng-model="Kwota" ng-change="wyplata( 1 )"> 
+                    <hr ng-show="kwotaDoWyplaty > 0">
                 </div>
-                <div class="row" ng-repeat="banknot in banknoty">
-                    <div class="col-xs-4">
-                        <span class="label label-success" ng-bind="banknot.nominal">
-                        </span>
+                <div class="col-md-4" ng-show="kwotaDoWyplaty > 0">
+                    <small>Kwota do wypłaty</small> <b ng-bind="kwotaDoWyplaty | currency: 'PLN ': 0"></b>
+                </div>
+                <div class="col-md-4" ng-show="kwotaDoWyplaty > 0">
+                    <button type="submit" ng-click="wyplata( 0 )" >Zatwierdź transkację</button>
+                </div>                    
+                <hr ng-show="kwotaDoWyplaty > 0"/> &nbsp;
+                <div class="col-md-8 well" ng-show="kwotaDoWyplaty > 0" >
+                    <h3>Banknoty do wypłacenia</h3>
+                    <div class="row">
+                        <div class="col-xs-4">Nominał</div>
+                        <div class="col-xs-4">Liczba</div>
+                        <div class="col-xs-4">Suma</div>
                     </div>
-                    <div class="col-xs-4" ng-bind="banknot.count"></div>
-                    <div class="col-xs-4" ng-bind="banknot.sum | currency:'PLN ':0"></div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12">
-                        Wypłacone banknoty: <br> 
-                        <dummy ng-repeat="b in banknoty">
-                            <dummy ng-repeat="n in getNumber( b.count  )">
-                            <span class="label label-success" ng-bind="b.nominal"></span>&nbsp;
+                    <div class="row" ng-repeat="banknot in banknoty">
+                        <div class="col-xs-4">
+                            <span class="label label-success" ng-bind="banknot.nominal">
+                            ng-show="kwotaDoWyplaty > 0"</span>
+                        </div>
+                        <div class="col-xs-4" ng-bind="banknot.count"></div>
+                        <div class="col-xs-4" ng-bind="banknot.sum | currency:'PLN ':0"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            Wypłacone banknoty: <br> 
+                            <dummy ng-repeat="b in banknoty">
+                                <dummy ng-repeat="n in getNumber( b.count  )">
+                                <span class="label label-success" ng-bind="b.nominal"></span>&nbsp;
+                                </dummy>
                             </dummy>
-                        </dummy>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="row" ng-show="transakcje.length > 0">
+                <div class="col-xs-12">
+                    <h2>Transakcje</h2> 
+                    <button ng-click="usunTransakcje()">Wyczyść</button>
+                    <label for="filter">Szukaj transakcji: </label><input ng-model="transakcjeFilter" id="filter">
+                </div>                
+            </div> 
+            <div class="row" ng-show="transakcje.length > 0">
+               <div class="col-xs-4">
+                   <b>Kwota</b>
+               </div>
+               <div class="col-xs-8">
+                   <b>Wyplacone banknoty</b>
+               </div>                                              
+            </div>
+            <div class="row" ng-repeat="transakcja in transakcje | filter: transakcjeFilter ">
+               <div class="col-xs-4" ng-bind="transakcja.sum | currency: 'PLN ': 0">                           
+               </div>
+               <div class="col-xs-8">
+                   <dummy ng-repeat="b in transakcja.banknoty">                       
+                       <span class="label label-success" ng-bind="b.nominal"></span> 
+                       x <span ng-bind="b.count"></span>&nbsp;   
+                   </dummy>
+               </div>                                              
+            </div>            
         </div>
 
         <script type="text/javascript" charset="utf-8">
-            var BanknotRes = function( nominal, count ){
+            var BanknotRes = function( nominal, count, amount ){
                 return {
                     'nominal' : nominal,
                     'count' : count,
                     'sum' : nominal * count,
+                    'amount' : amount
                 }
             }
-            var Banknot = function( nominal, nextBanknot ){
+            var Banknot = function( nominal, nextBanknot, amount ){
                 var b = {
                     'nominal' : nominal,
                     'next' : nextBanknot,
-                    'process' : function( value, onBanknot ){
+                    'amount' : amount || 100,
+                    'process' : function( value, onBanknot, dryRun ){
                         var count = 0;
                         var prevvalue = -1;
-                        while (( b.nominal <= value ) && (prevvalue != value)) {
+                        var amount = b.amount;
+                        while (( b.nominal <= value ) && (prevvalue != value) && ( amount > 0) ) {
                             count += 1;
                             prevvalue = value;
-                            value -= b.nominal;                            
+                            value -= b.nominal;  
+                            amount -= 1;
                         }
-                        if (count > 0)
-                            onBanknot( BanknotRes( b.nominal, count ) );
+                        if (count > 0) {
+                            onBanknot( BanknotRes( b.nominal, count, b.amount ) );
+                            if ( ! dryRun ){
+                                b.amount -= count;
+                            }
+                        }
                         if ( b.next ){
-                            b.next.process( value, onBanknot )
+                            b.next.process( value, onBanknot, dryRun )
                         }
                     }
                 }
                 return b;
-            }            
+            }  
+
+
             var b10 = Banknot( 10, null );
             var b20 = Banknot( 20, b10 );            
             var b50 = Banknot( 50, b20 );            
@@ -106,40 +169,66 @@
                         });
                         return res;hero-unit
                     },
-                    'wyplac' : function( kwota ){
-                        if ( bs.banknoty.length <= 0 )
+                    'wyplac' : function( kwota, dryRun ){
+                        if ( bs.banknoty.length <= 0 ){
                             return [];
+                        }; // >
                         kwota = parseInt( kwota );
                         var res = [];
                         bs.banknoty[0].process( kwota, function( banknot_res ){
                             res.push( banknot_res);
-                        } );
+                        }, dryRun );
                         return res;
                     }
                 }
                 return bs;
-            }           
+            }          
+
+            var Transakcja = function( sum, banknoty ){
+                return {
+                    'sum' : sum,
+                    'banknoty' : banknoty
+                }
+            }
 
 
-            var app = angular.module('myApp', []);
-            var myctrl = app.controller('bankomatCtrl', function($scope) {
+            var app = angular.module('myApp', ['ngStorage']);
+            var myctrl = app.controller('bankomatCtrl', function($scope, $localStorage, $sessionStorage) {
                 $scope.kwotaMax = 1000000;
-                $scope.Kwota = 12345;
+                $scope.Kwota = 0;
                 $scope.kwotaDoWyplaty = 0;
                 $scope.banknoty = [];
-                $scope.banknotyObject = Banknoty( aBanknoty );
-                $scope.wyplata = function(){
+                $scope.transakcje = JSON.parse( $localStorage.transakcje ? $localStorage.transakcje : '[]' ); // || [] ;
+                $scope.banknotySet = aBanknoty;
+                $scope.banknotyObject = Banknoty( $scope.banknotySet );
+                $scope.wyplata = function( dryRun ){
                     var kw = parseInt( $scope.Kwota);
                     kw = kw > $scope.kwotaMax ? $scope.kwotaMax : kw;
-                    $scope.banknoty = $scope.banknotyObject.wyplac( kw );
+                    $scope.banknoty = $scope.banknotyObject.wyplac( kw, dryRun );
                     $scope.kwotaDoWyplaty = $scope.banknotyObject.sum( $scope.banknoty );
+                    if ( (! dryRun) && ( $scope.kwotaDoWyplaty > 0) ){
+                        $scope.transakcje.unshift( Transakcja($scope.kwotaDoWyplaty, $scope.banknoty ) );
+                        $scope.banknoty = [];
+                        $scope.kwotaDoWyplaty = 0;
+                        $scope.Kwota = 0;                             
+                        $localStorage.transakcje = angular.toJson($scope.transakcje);
+                    }
                 }
-                $scope.wyplata();
+                $scope.wyplata( 1 );
                 $scope.getNumber = function(num) {
                     num = parseInt( num );
                     var res = [];
                     for ( var i = 0; i< num; i++) { res.push( i )};
                     return res;
+                }
+                $scope.doladujBankomat = function(){
+                    for ( k in $scope.banknotySet){
+                        $scope.banknotySet[k].amount += 100;
+                    }
+                }
+                $scope.usunTransakcje = function(){
+                    delete $localStorage.transakcje; 
+                    $scope.transakcje = [];
                 }
             });            
         </script>
