@@ -3,9 +3,9 @@
     <head>
         <title>Bankomat</title>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-        <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+        <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+        <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="/bower_components/angular/angular.min.js"></script>
     </head>
     <body>
        <div ng-app="myApp" ng-controller="bankomatCtrl" class=container>
@@ -26,7 +26,7 @@
                 <label for="Kwota">Żądana kwota</label> <input ng-model="Kwota" ng-change="wyplata()">            
             </div>
             <div class="col-xs-12">
-                <small>Kwota do wypłaty</small> <b>{{ kwotaDoWyplaty | currency: "PLN ": 0}}</b>
+                <small>Kwota do wypłaty</small> <b ng-bind="kwotaDoWyplaty | currency: 'PLN ': 0"></b>
             </div>
             <hr>
             <div class="col-xs-12 well">
@@ -38,19 +38,18 @@
                 </div>
                 <div class="row" ng-repeat="banknot in banknoty">
                     <div class="col-xs-4">
-                        <span class="label label-success class="label label-success" nccess">
-                            {{ banknot.nominal}} {{ n }}
+                        <span class="label label-success" ng-bind="banknot.nominal">
                         </span>
                     </div>
-                    <div class="col-xs-4">{{ banknot.count }}</div>
-                    <div class="col-xs-4">{{ banknot.sum | currency:"PLN ":0 }}</div>
+                    <div class="col-xs-4" ng-bind="banknot.count"></div>
+                    <div class="col-xs-4" ng-bind="banknot.sum | currency:'PLN ':0"></div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
                         Wypłacone banknoty: <br> 
                         <dummy ng-repeat="b in banknoty">
                             <dummy ng-repeat="n in getNumber( b.count  )">
-                                <span class="label label-success"> {{ b.nominal }}</span>&nbsp;
+                            <span class="label label-success" ng-bind="b.nominal"></span>&nbsp;
                             </dummy>
                         </dummy>
                     </div>
@@ -123,7 +122,7 @@
 
 
             var app = angular.module('myApp', []);
-            app.controller('bankomatCtrl', function($scope) {
+            var myctrl = app.controller('bankomatCtrl', function($scope) {
                 $scope.kwotaMax = 1000000;
                 $scope.Kwota = 12345;
                 $scope.kwotaDoWyplaty = 0;
@@ -145,6 +144,6 @@
             });            
         </script>
 
-        <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     </body>
 </html>
